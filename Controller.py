@@ -31,7 +31,7 @@ class DxPrinterController:
     def received_message(self, client, say, event):
         if self.is_from_ryan(event):
             self.handle_ryan_command(event, say)
-            # return
+            return
 
         if 'files' not in event:
             say("No file was sent!")
