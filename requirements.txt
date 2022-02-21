@@ -10,3 +10,4 @@ slack-bolt==1.11.4
 slack-sdk==3.15.1
 urllib3==1.26.8
 yarg==0.1.9
+switchbotpy==0.1.8
