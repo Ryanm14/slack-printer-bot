@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import uuid
 import PyPDF2, io, requests
 
+import SwitchBotClicker
 from BearerAuth import BearerAuth
 
 load_dotenv()
@@ -86,21 +87,24 @@ class DxPrinterController:
 
     def message_ryan_new_order(self, print_order, say):
         say(f"{print_order.user_name}, {print_order.user_email} requested to print {print_order.copies} copies, "
-            f"orderID: {print_order.orderId}", channel=RYAN_USER_ID)
+            f"orderID: {print_order.orderId}. Respond accept/deny." , channel=RYAN_USER_ID)
 
     def print_pdf(self, orderId):
+        SwitchBotClicker.press()
         os.system(f"lp ./pdf/{orderId}.pdf")
 
     def handle_ryan_command(self, event, say):
         text = event['text']
 
-        if text == "accept" and self.latest_request is not None:
+
+
+        if text.strip().lower() == "accept" and self.latest_request is not None:
             say(f"Ok! Accepting and printing order {self.latest_request.orderId}", channel=RYAN_USER_ID)
             say(f"Ryan accepted your order", channel=self.latest_request.userId)
             self.print_pdf(self.latest_request.orderId)
             self.print_queue.pop(self.latest_request.orderId)
             self.latest_request = None
-        elif text == "deny" and self.latest_request is not None:
+        elif text.strip().lower() == "deny" and self.latest_request is not None:
             say(f"Ok! Denied order {self.latest_request.orderId}", channel=RYAN_USER_ID)
             say(f"Ryan denied your order", channel=self.latest_request.userId)
             self.print_queue.pop(self.latest_request.orderId)
