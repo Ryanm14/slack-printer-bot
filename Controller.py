@@ -111,18 +111,19 @@ class DxPrinterController:
             say(f"Ok! Accepting and printing order {print_request.orderId}", channel=RYAN_USER_ID)
             say(f"Ryan accepted your order", channel=print_request.userId)
             self.print_pdf(print_request.orderId)
-            self.print_queue.pop(print_request.orderId)
-            if print_request == self.latest_request:
-                self.latest_request = None
+            self.remove_from_queue(print_request)
         elif text.strip().lower() == "deny" and print_request is not None:
             say(f"Ok! Denied order {print_request.orderId}", channel=RYAN_USER_ID)
             say(f"Ryan denied your order", channel=print_request.userId)
-            self.print_queue.pop(print_request.orderId)
-            if print_request == self.latest_request:
-                self.latest_request = None
+            self.remove_from_queue(print_request)
         else:
             if print_request:
                 say(f"Error: invalid command", channel=RYAN_USER_ID)
             else:
                 say(f"Error: no current order", channel=RYAN_USER_ID)
+
+    def remove_from_queue(self, print_request):
+        self.print_queue.pop(print_request.orderId)
+        if print_request == self.latest_request:
+            self.latest_request = None
 
