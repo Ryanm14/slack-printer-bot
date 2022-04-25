@@ -14,11 +14,12 @@ SLACK_AUTH_TOKEN = os.environ['SLACK_AUTH_TOKEN']
 RYAN_VENMO = os.environ['RYAN_VENMO']
 
 class PrintOrder:
-    def __init__(self, user_name, user_email, file_url, total_pages, userId):
+    def __init__(self, user_name, user_email, file_url, copies, total_pages, userId):
         self.user_name = user_name
         self.user_email = user_email
         self.file_url = file_url
         self.total_pages = total_pages
+        self.copies = copies
         self.userId = userId
         self.orderId = str(uuid.uuid4())
 
@@ -49,14 +50,10 @@ class DxPrinterController:
         pdf_reader = self.get_pdf(file_url)
         total_pages = pdf_reader.numPages * copies
 
-        if total_pages > 10:
-            say('Too many pages. Text Ryan. Canceling print!')
-            return
-
         real_name, email = self.get_user_details(user, client)
         cost = (total_pages - 1) * 0.05 + .25
 
-        print_order = PrintOrder(user_name=real_name, user_email=email, file_url=file_url, total_pages=total_pages, userId=user)
+        print_order = PrintOrder(user_name=real_name, user_email=email, file_url=file_url, copies=copies, total_pages=total_pages, userId=user)
         self.save_pdf(pdf_reader, print_order.orderId)
         self.print_queue[print_order.orderId] = print_order
         self.latest_request = print_order
@@ -89,9 +86,10 @@ class DxPrinterController:
         say(f"{print_order.user_name}, {print_order.user_email} requested to print {print_order.total_pages} total pages, "
             f"orderID: {print_order.orderId}. Respond accept/deny." , channel=RYAN_USER_ID)
 
-    def print_pdf(self, orderId):
+    def print_pdf(self, orderId, copies=1):
         SwitchBotClicker.press()
-        os.system(f"lp ./pdf/{orderId}.pdf")
+        for i in range(copies):
+            os.system(f"lp ./pdf/{orderId}.pdf")
 
     def handle_ryan_command(self, event, say):
         text = event['text']
@@ -110,7 +108,7 @@ class DxPrinterController:
         if text.strip().lower() == "accept" and print_request is not None:
             say(f"Ok! Accepting and printing order {print_request.orderId}", channel=RYAN_USER_ID)
             say(f"Ryan accepted your order", channel=print_request.userId)
-            self.print_pdf(print_request.orderId)
+            self.print_pdf(print_request.orderId, copies=print_request.copies)
             self.remove_from_queue(print_request)
         elif text.strip().lower() == "deny" and print_request is not None:
             say(f"Ok! Denied order {print_request.orderId}", channel=RYAN_USER_ID)
