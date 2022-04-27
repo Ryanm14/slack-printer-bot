@@ -39,6 +39,10 @@ class DxPrinterController:
             return
 
         user, copies_text, file_url = event['user'], event['text'], event['files'][0]['url_private']
+
+        if 'print' in copies_text:
+            copies_text = copies_text.replace('print', '').strip()
+
         copies = 1
 
         if copies_text.isdigit():
@@ -62,7 +66,7 @@ class DxPrinterController:
         say(f"Print order {print_order.orderId} received with {total_pages} pages. Venmo @{RYAN_VENMO}: ${cost} to print.")
 
     def is_from_ryan(self, event):
-        return event['user'] == RYAN_USER_ID
+        return 'print' not in event['text'] and event['user'] == RYAN_USER_ID
 
     def get_user_details(self, user, client):
         id = client.users_profile_get(user=user).data['profile']
